@@ -75,11 +75,13 @@ contract PublicSaleManager is owned {
 
         // Records the bonus part.
         if (now < _startTime + (6 hours)) {
+            // 10% bonus in the first 6 hours.
             _bonus[msg.sender] += purchaseAmount / 10;
-            _totalBonus += _bonus[msg.sender];
+            _totalBonus += purchaseAmount / 10;
         } else if (now < _startTime + (24 hours)) {
+            // 5% bonus in the first 24 hours.
             _bonus[msg.sender] += purchaseAmount / 20;
-            _totalBonus += _bonus[msg.sender];
+            _totalBonus += purchaseAmount / 20;
         }
     }
 
