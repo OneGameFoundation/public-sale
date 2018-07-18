@@ -59,6 +59,7 @@ contract PublicSaleManager is owned {
         require(_whiteList[msg.sender] == true);
 
         // Validates time.
+        require(now > _startTime);
         require(now < _startTime + (31 days));
 
         // Calculates the purchase amount.
