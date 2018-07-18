@@ -38,7 +38,7 @@ contract PublicSaleManager is owned {
 
     function start(uint32 conversionRate) public onlyOwner {
         require(_startTime == 0);
-        require(_conversionRate > 1);
+        require(conversionRate > 1);
 
         // Starts the public sale.
         _startTime = now;
