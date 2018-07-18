@@ -54,6 +54,10 @@ contract PublicSaleManager is owned {
         ERC20(_tokenAddress).transfer(_deadAddress, ERC20(_tokenAddress).balanceOf(this) - _totalBonus);
     }
 
+    function withdrawEther(address toAddress, uint256 amount) public onlyOwner {
+        toAddress.transfer(amount);
+    }
+
     function buyTokens() payable public {
         // Validates whitelist.
         require(_whiteList[msg.sender] == true);
