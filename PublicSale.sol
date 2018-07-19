@@ -37,6 +37,8 @@ contract PublicSaleManager is owned {
     uint256 _higherPersonalCap = 2e20; // 200 ETH
     uint256 _minimumAmount = 2e17; // 0.2 ETH
 
+    bool _is_stopped = false;
+
     function addWhitelist(address[] addressList) public onlyOwner {
         // Whitelist is managed manually and addresses are added in batch.
         for (uint i = 0; i < addressList.length; i++) {
@@ -62,6 +64,10 @@ contract PublicSaleManager is owned {
         _conversionRate = conversionRate;
     }
 
+    function stop() public onlyOwner {
+        _is_stopped = true;
+    }
+
     function burnUnsold() public onlyOwner {
         require(now >= _startTime + (31 days));
 
@@ -74,6 +80,8 @@ contract PublicSaleManager is owned {
     }
 
     function buyTokens() payable public {
+        require(_is_stopped == false);
+
         // Validates whitelist.
         require(_whiteList[msg.sender] == true || _earlyList[msg.sender] == true);
 
