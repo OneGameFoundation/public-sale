@@ -150,4 +150,14 @@ contract PublicSaleManager is owned {
     function checkContributedETH(address purchaser) public constant returns (uint256 balance) {
         return _contributedETH[purchaser];
     }
+
+    function checkPersonalRemaining(address purchaser) public constant returns (uint256 balance) {
+        if (_earlyList[purchaser]) {
+            return _higherPersonalCap - _contributedETH[purchaser];
+        } else if (_whiteList[purchaser]) {
+            return _regularPersonalCap - _contributedETH[purchaser];
+        } else {
+            return 0;
+        }
+    }
 }
