@@ -23,6 +23,7 @@ contract PublicSaleManager is owned {
     mapping (address => bool) _earlyList;
     mapping (address => bool) _whiteList;
     mapping (address => uint256) _bonus;
+    mapping (address => uint256) _contributedETH;
 
     address _tokenAddress = 0xAF815e887b039Fc06a8ddDcC7Ec4f57757616Cd2;
     address _deadAddress = 0x000000000000000000000000000000000000dead;
@@ -77,9 +78,9 @@ contract PublicSaleManager is owned {
         require(_whiteList[msg.sender] == true || _earlyList[msg.sender] == true);
 
         if (_earlyList[msg.sender]) {
-            require(msg.value <= _higherPersonalCap);
+            require(msg.value + _contributedETH[msg.sender] <= _higherPersonalCap);
         } else {
-            require(msg.value <= _regularPersonalCap);
+            require(msg.value + _contributedETH[msg.sender] <= _regularPersonalCap);
         }
 
         require(msg.value >= _minimumAmount);
@@ -107,6 +108,7 @@ contract PublicSaleManager is owned {
 
         // Transfers the non-bonus part.
         ERC20(_tokenAddress).transfer(msg.sender, purchaseAmount);
+        _contributedETH[msg.sender] += msg.value;
 
         // Records the bonus.
         _bonus[msg.sender] += bonus;
@@ -135,5 +137,9 @@ contract PublicSaleManager is owned {
 
     function checkTotalSold() public constant returns (uint256 balance) {
         return _totalSold;
+    }
+
+    function checkContributedETH(address purchaser) public constant returns (uint256 balance) {
+        return _contributedETH[purchaser];
     }
 }
