@@ -27,6 +27,8 @@ contract PublicSaleManager is owned {
     address _deadAddress = 0x000000000000000000000000000000000000dead;
     uint256 _conversionRate = 0;
     uint256 _startTime = 0;
+
+    uint256 _totalSold = 0;
     uint256 _totalBonus = 0;
 
     function addWhitelist(address[] addressList) public onlyOwner {
@@ -70,23 +72,27 @@ contract PublicSaleManager is owned {
         uint256 purchaseAmount = msg.value * _conversionRate;
         require(_conversionRate > 0 && purchaseAmount / _conversionRate == msg.value);
 
+        // Calculates the bonus amount.
+        uint256 bonus = 0;
+        if (_totalSold + purchaseAmount < 5e26) {
+            // 10% bonus for the first 500 million OGT.
+            bonus = purchaseAmount / 10;
+        } else if (_totalSold + purchaseAmount < 10e26) {
+            // 5% bonus for the first 1 billion OGT.
+            bonus = purchaseAmount / 20;
+        }
+
         // Checks that we still have enough balance.
-        require(ERC20(_tokenAddress).balanceOf(this) > _totalBonus);
-        require(purchaseAmount <= ERC20(_tokenAddress).balanceOf(this) - _totalBonus);
+        require(ERC20(_tokenAddress).balanceOf(this) >= _totalBonus + purchaseAmount + bonus);
 
         // Transfers the non-bonus part.
         ERC20(_tokenAddress).transfer(msg.sender, purchaseAmount);
 
-        // Records the bonus part.
-        if (now < _startTime + (6 hours)) {
-            // 10% bonus in the first 6 hours.
-            _bonus[msg.sender] += purchaseAmount / 10;
-            _totalBonus += purchaseAmount / 10;
-        } else if (now < _startTime + (24 hours)) {
-            // 5% bonus in the first 24 hours.
-            _bonus[msg.sender] += purchaseAmount / 20;
-            _totalBonus += purchaseAmount / 20;
-        }
+        // Records the bonus.
+        _bonus[msg.sender] += bonus;
+
+        _totalBonus += bonus;
+        _totalSold += (purchaseAmount + bonus);
     }
 
     function claimBonus() public {
