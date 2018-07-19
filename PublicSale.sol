@@ -20,6 +20,7 @@ contract owned {
 
 contract PublicSaleManager is owned {
 
+    mapping (address => bool) _earlyList;
     mapping (address => bool) _whiteList;
     mapping (address => uint256) _bonus;
 
@@ -31,10 +32,21 @@ contract PublicSaleManager is owned {
     uint256 _totalSold = 0;
     uint256 _totalBonus = 0;
 
+    uint256 _regularPersonalCap = 1e20; // 100 ETH
+    uint256 _higherPersonalCap = 2e20; // 200 ETH
+    uint256 _minimumAmount = 2e17; // 0.2 ETH
+
     function addWhitelist(address[] addressList) public onlyOwner {
         // Whitelist is managed manually and addresses are added in batch.
         for (uint i = 0; i < addressList.length; i++) {
             _whiteList[addressList[i]] = true;
+        }
+    }
+    
+    function addEarlylist(address[] addressList) public onlyOwner {
+        // Whitelist is managed manually and addresses are added in batch.
+        for (uint i = 0; i < addressList.length; i++) {
+            _earlyList[addressList[i]] = true;
         }
     }
 
@@ -62,7 +74,15 @@ contract PublicSaleManager is owned {
 
     function buyTokens() payable public {
         // Validates whitelist.
-        require(_whiteList[msg.sender] == true);
+        require(_whiteList[msg.sender] == true || _earlyList[msg.sender] == true);
+
+        if (_earlyList[msg.sender]) {
+            require(msg.value <= _higherPersonalCap);
+        } else {
+            require(msg.value <= _regularPersonalCap);
+        }
+
+        require(msg.value >= _minimumAmount);
 
         // Validates time.
         require(now > _startTime);
@@ -97,14 +117,23 @@ contract PublicSaleManager is owned {
 
     function claimBonus() public {
         // Validates whitelist.
-        require(_whiteList[msg.sender] == true);
+        require(_whiteList[msg.sender] == true || _earlyList[msg.sender] == true);
         
         // Validates bonus.
         require(_bonus[msg.sender] > 0);
 
-        // Transfers the bonus if it's after 90 days.
-        if (now > _startTime + (90 days)) {
+        // Transfers the bonus if it's after 10 minutes.
+        if (now > _startTime + (10 minutes)) {
             ERC20(_tokenAddress).transfer(msg.sender, _bonus[msg.sender]);
+            _bonus[msg.sender] = 0;
         }
+    }
+
+    function checkBonus(address purchaser) public constant returns (uint256 balance) {
+        return _bonus[purchaser];
+    }
+
+    function checkTotalSold() public constant returns (uint256 balance) {
+        return _totalSold;
     }
 }
