@@ -252,7 +252,7 @@ contract TeamTokenLock is owned {
 
         uint256 allowedAmount = getAllowedAmountByTeam();
 
-        require(amount + _totalWithdrawAmount < allowedAmount);
+        require(amount + _totalWithdrawAmount <= allowedAmount);
 
         _totalWithdrawAmount += amount;
 
